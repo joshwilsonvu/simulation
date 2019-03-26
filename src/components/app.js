@@ -1,9 +1,6 @@
 import React, {Component} from 'react';
 
 import styled from 'styled-components';
-import {Nav} from './nav';
-import {Main} from './main';
-
 
 const AppPad = styled.div`
   margin: 0;
@@ -25,8 +22,7 @@ const AppCenter = styled.div`
 export const App = props => (
   <AppPad>
     <AppCenter>
-      <Nav username={props.username}/>
-      <Main/>
+      Hello world!
     </AppCenter>
   </AppPad>
 );
