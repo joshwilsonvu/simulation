@@ -5,21 +5,22 @@
   "main": "src/server/index.mjs",
   "scripts": {
     "build": "webpack",
-    "dev": "webpack-dev-server"
+    "dev": "webpack-dev-server",
+    "open": "http-server -o"
   },
   "author": "Josh Wilson",
   "license": "ISC",
   "dependencies": {
-    "@material-ui/core": "^3.9.2",
-    "@material-ui/icons": "^3.0.2",
     "audioworklet-polyfill": "^1.1.2",
+    "normalize.css": "^8.0.1",
     "react": "^16.8.5",
     "react-dom": "^16.6.3",
     "react-helmet": "^5.2.0",
+    "react-icons": "^3.5.0",
     "react-redux": "^6.0.1",
     "redux": "^4.0.1",
     "redux-logger": "^3.0.6",
-    "styled-components": "^4.1.2"
+    "styled-components": "^4.2.0"
   },
   "devDependencies": {
     "@babel/core": "^7.1.2",
@@ -29,9 +30,12 @@
     "acorn": "^6.1.1",
     "babel-cli": "^6.26.0",
     "babel-loader": "^8.0.4",
+    "babel-plugin-styled-components": "^1.10.0",
     "concurrently": "^4.1.0",
+    "css-loader": "^2.1.1",
     "html-webpack-plugin": "^3.2.0",
     "http-server": "^0.11.1",
+    "style-loader": "^0.23.1",
     "webpack": "^4.22.0",
     "webpack-cli": "^3.1.2",
     "webpack-dev-server": "^3.2.1"

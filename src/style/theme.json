@@ -1,0 +1,25 @@
+{
+  "padding": "1rem",
+  "color": "#333",
+  "backgroundColor": "#FFF",
+
+  "textColor": "#333",
+  "quietColor": "#ccc",
+  "loudColor": "#000",
+  "headingColor": "#111",
+
+  "linkColor": "#d54aaf",
+  "linkHoverColor": "saturate(#d54aaf, 20%)",
+  "linkVisitedColor": "purple",
+
+  "baseFontFamily": "\"Roboto Condensed\", sans-serif",
+  "baseFontSize": "18px",
+  "baseFontWeight": "300",
+
+  "fixedFontFamily": "\"Andale Mono\", AndaleMono, monospace",
+  "fixedFontSize": "15px",
+  "fixedLineHeight": "1.2",
+
+  "headingFontFamily": "\"Roboto Condensed\", sans-serif",
+  "headingFontWeight": "700"
+}
