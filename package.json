@@ -6,7 +6,7 @@
   "scripts": {
     "build": "webpack",
     "dev": "webpack-dev-server",
-    "open": "http-server -o"
+    "start": "http-server"
   },
   "author": "Josh Wilson",
   "license": "ISC",
