@@ -1,21 +1,26 @@
-'use strict';
-
 import React from 'react';
 import {render} from 'react-dom';
 import {ThemeProvider} from 'styled-components';
+import {MuiThemeProvider} from '@material-ui/core';
+import {Provider} from 'react-redux';
+import {createStore, applyMiddleware} from 'redux';
+import {logger} from 'redux-logger';
+
 import {App} from './components/app';
-
 import theme from './theme';
-import './css/base.css';
+import reducer from './reducers/index';
 
-let div = document.createElement("div");
+// Create the global store for the application
+let store = createStore(reducer, applyMiddleware(logger));
+// Create a div for React to live inside
+let div = document.createElement('div');
 document.body.appendChild(div);
-console.log("appended div");
-// Function to render the whole application
+
+// Render the whole application
 render(
-  <ThemeProvider theme={theme}>
+  <Provider store={store}>
     <App/>
-  </ThemeProvider>,
+  </Provider>,
   div
 );
 

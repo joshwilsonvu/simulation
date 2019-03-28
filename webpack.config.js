@@ -16,10 +16,6 @@ module.exports = {
         test: /\.js$/,
         exclude: /node_modules/,
         use: ['babel-loader']
-      },
-      {
-        test: /\.s?css$/,
-        use: ['style-loader', 'css-loader', 'sass-loader']
       }
     ]
   },
@@ -37,16 +33,12 @@ module.exports = {
   devServer: {
     host: '127.0.0.1',
     publicPath: '/',
-    contentBase: '/'
+    contentBase: '/',
+    overlay: true
   },
   plugins: [
     new HtmlWebpackPlugin({
-      title: "Simulation",
       showErrors: true,
-      meta: {
-        viewport: "width=device-width, initial-scale=1, shrink-to-fit=no"
-      },
-
     })
   ],
   stats: "minimal"
