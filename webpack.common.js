@@ -1,6 +1,8 @@
 'use strict';
 
-let path = require('path'),
+let webpack = require('webpack'),
+  path = require('path'),
+  CleanWebpackPlugin = require('clean-webpack-plugin'),
   HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
@@ -45,6 +47,8 @@ module.exports = {
     overlay: true,
   },
   plugins: [
+    new webpack.ProgressPlugin(),
+    new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
       showErrors: true,
     })
