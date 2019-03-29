@@ -5,7 +5,11 @@ let path = require('path'),
 
 module.exports = {
   mode: "development",
-  entry: './src/index.js',
+  entry: [
+    'webpack-dev-server/client?http://127.0.0.1:8080/',
+    "webpack/hot/only-dev-server",
+    './src/index.js',
+    ],
   output: {
     filename: '[name].js',
     path: path.join(__dirname, './public/'),
@@ -38,7 +42,7 @@ module.exports = {
     host: '127.0.0.1',
     publicPath: '/',
     contentBase: '/',
-    overlay: true
+    overlay: true,
   },
   plugins: [
     new HtmlWebpackPlugin({

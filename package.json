@@ -5,14 +5,13 @@
   "main": "src/server/index.mjs",
   "scripts": {
     "build": "webpack",
-    "dev": "webpack-dev-server",
+    "dev": "webpack-dev-server --hot --inline",
     "start": "http-server"
   },
   "author": "Josh Wilson",
   "license": "ISC",
   "dependencies": {
     "audioworklet-polyfill": "^1.1.2",
-    "http-server": "^0.11.1",
     "normalize.css": "^8.0.1",
     "react": "^16.8.5",
     "react-dom": "^16.6.3",
@@ -21,6 +20,7 @@
     "react-redux": "^6.0.1",
     "redux": "^4.0.1",
     "redux-logger": "^3.0.6",
+    "redux-thunk": "^2.3.0",
     "styled-components": "^4.2.0"
   },
   "devDependencies": {
@@ -35,6 +35,7 @@
     "concurrently": "^4.1.0",
     "css-loader": "^2.1.1",
     "html-webpack-plugin": "^3.2.0",
+    "http-server": "^0.11.1",
     "style-loader": "^0.23.1",
     "webpack": "^4.22.0",
     "webpack-cli": "^3.1.2",

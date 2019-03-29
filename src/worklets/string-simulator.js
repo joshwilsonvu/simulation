@@ -22,5 +22,7 @@ class StringSimulator extends AudioWorkletProcessor {
     } else {
       // |myParam| has been changed and |myParamValues| has 128 values.
     }
+
+    return true; // keep alive
   }
 }
