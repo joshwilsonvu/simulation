@@ -4,6 +4,7 @@ import {Helmet} from 'react-helmet';
 import {Root} from './layouts';
 
 import Volume from './volume';
+import Piano from './piano';
 import connect from 'react-redux/es/connect/connect';
 import {noteOn, noteOff} from '../actions/actions';
 
@@ -16,7 +17,7 @@ const TempButton = connect(
 )(({noteOn, noteOff, ...rest}) => {
 
   return (
-    <button onMouseDown={noteOn} onMouseLeave={noteOff} {...rest}/>
+    <button onMouseDown={noteOn} onMouseUp={noteOff} {...rest}/>
   );
 });
 
@@ -40,6 +41,9 @@ export const App = () => {
           <Volume/>
           <p>Use the button below to strike an A4.</p>
           <TempButton>A4</TempButton>
+          <div style={{width: '100%', maxWidth: '30rem'}}>
+            <Piano/>
+          </div>
         </Root>
       </If>
     </>

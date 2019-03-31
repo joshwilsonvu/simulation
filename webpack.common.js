@@ -8,8 +8,6 @@ let webpack = require('webpack'),
 module.exports = {
   mode: "development",
   entry: [
-    'webpack-dev-server/client?http://127.0.0.1:8080/',
-    "webpack/hot/only-dev-server",
     './src/index.js',
     ],
   output: {
@@ -39,12 +37,6 @@ module.exports = {
         }
       }
     }
-  },
-  devServer: {
-    host: '127.0.0.1',
-    publicPath: '/',
-    contentBase: '/',
-    overlay: true,
   },
   plugins: [
     new webpack.ProgressPlugin(),

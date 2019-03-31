@@ -8,28 +8,12 @@ export const paramChange = (param, value) => ({
   value
 });
 
-const noteOnPlain = (note, velocity) => ({
+export const noteOn = (note) => ({
   type: NOTE_ON,
   note,
-  velocity
 });
 
-const noteOffPlain = note => ({
+export const noteOff = note => ({
   type: NOTE_OFF,
-  note
+  note,
 });
-
-// Takes a MIDI note value 1-127 and a velocity [0,1]. Dispatches NOTE_OFF if necessary.
-export const noteOn = (note, velocity = 0.5) => (dispatch, getState) => {
-  if (getState().note.indexOf(note) !== -1) {
-    dispatch(noteOffPlain(note));
-  }
-  dispatch(noteOnPlain(note, velocity));
-};
-
-// Takes a MIDI note value 1-127. Only dispatches if necessary.
-export const noteOff = (note) => (dispatch, getState) => {
-  if (getState().note.indexOf(note) !== -1) {
-    dispatch(noteOffPlain(note))
-  }
-};
