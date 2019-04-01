@@ -4,12 +4,16 @@
   "description": "CS 3274 Final Project.",
   "scripts": {
     "build": "webpack --config webpack.prod.js",
-    "start": "webpack-dev-server --config webpack.dev.js"
+    "start": "concurrently --kill-others --names webpack,server 'webpack --watch --config webpack.dev.js' 'http-server -s'"
   },
   "author": "Josh Wilson",
   "license": "ISC",
+  "repository": "https://github.com/joshwilsonvu/simulation.git",
   "dependencies": {
     "audioworklet-polyfill": "^1.1.2",
+    "babel-core": "^6.26.3",
+    "babel-preset": "^1.0.6",
+    "es2015": "0.0.0",
     "normalize.css": "^8.0.1",
     "react": "^16.8.5",
     "react-codemirror": "^1.0.0",

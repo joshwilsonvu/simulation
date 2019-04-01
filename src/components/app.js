@@ -8,19 +8,6 @@ import Piano from './piano';
 import connect from 'react-redux/es/connect/connect';
 import {noteOn, noteOff} from '../actions/actions';
 
-const TempButton = connect(
-  null,
-  {
-    noteOn: () => noteOn(60),
-    noteOff: () => noteOff(60)
-  }
-)(({noteOn, noteOff, ...rest}) => {
-
-  return (
-    <button onMouseDown={noteOn} onMouseUp={noteOff} {...rest}/>
-  );
-});
-
 const If = ({cond, ...rest}) => (cond ? <React.Fragment {...rest}/> : <></>);
 
 
@@ -39,8 +26,7 @@ export const App = () => {
           <h4>Hello world!</h4>
           <p>Use the slider below to change the master volume.</p>
           <Volume/>
-          <p>Use the button below to strike an A4.</p>
-          <TempButton>A4</TempButton>
+          <p>Use the keyboard below to play notes.</p>
           <div style={{width: '100%', maxWidth: '30rem'}}>
             <Piano/>
           </div>

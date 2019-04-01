@@ -1,6 +1,7 @@
 import React, {useState, useEffect, useMemo} from 'react';
-import StringNode from '../nodes/string-node';
-
+import CustomNode from '../nodes/custom-node';
+import {connect} from 'react-redux';
+/*
 class Audio {
   constructor() {
     this._context = new ()();
@@ -11,6 +12,7 @@ class Audio {
 
 }
 
+*/
 
 // from https://github.com/captbaritone/winamp2-js/blob/a5a76f554c369637431fe809d16f3f7e06a21969/js/media/index.js#L8-L27
 const resumeContextOnInteraction = context => {
@@ -31,8 +33,10 @@ const resumeContextOnInteraction = context => {
   }
 };
 
-export default ({module}) => {
-  const [context] = useState(new (window.AudioContext || window.webkitAudioContext)());
+export default connect(
+
+)(({module}) => {
+  const [context] = useState(new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 44100 }));
 
   useEffect(() => {
     return async () => (
@@ -53,4 +57,4 @@ export default ({module}) => {
   }, [module]);
 
 
-}
+});
