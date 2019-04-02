@@ -7,9 +7,10 @@ let webpack = require('webpack'),
 
 module.exports = {
   mode: "development",
-  entry: [
-    './src/index.js',
-    ],
+  entry: {
+    main: './src/index.js',
+
+  },
   output: {
     filename: '[name].js',
     path: path.join(__dirname, './public/'),
@@ -20,6 +21,18 @@ module.exports = {
         test: /\.js$/,
         exclude: /node_modules/,
         use: ['babel-loader']
+      },
+      {
+        test: /\.worklet\.js$/,
+        exclude: /node_modules/,
+        use: [{
+          loader: 'worklet-loader'
+        }],
+      },
+      {
+        test: /\.(worker|worklet)\.js$/,
+        exclude: /node_modules/,
+        use: ['raw-loader']
       },
       {
         test: /\.css$/,

@@ -36,7 +36,7 @@ const resumeContextOnInteraction = context => {
 export default connect(
 
 )(({module}) => {
-  const [context] = useState(new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 44100 }));
+  const [context] = useState(new (window.AudioContext || window.webkitAudioContext)());
 
   useEffect(() => {
     return async () => (
