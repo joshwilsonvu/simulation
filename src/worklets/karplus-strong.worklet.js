@@ -11,12 +11,13 @@
 import generatorAdapter from './generator-adapter';
 
 function* karplusStrong() {
-  // get initial arguments
+// get initial arguments
   let {parameters} = yield;
 
-  // First render quantum, calculate buffer length and allocate
-  // N approx = (fs/F0) - 1/2
-  const N = Math.round(sampleRate / parameters.frequency[0] - 0.5);
+  const start = currentTime;
+
+  // Calculate buffer length and allocate N approx = (fs/F0) - 1/2
+  const N = Math.round(sampleRate / parameters.frequency - 0.5);
   const ringBuffer = new Float32Array(N);
   // Fill with random data for the strike
   for (let i = 0; i < N; ++i) {
@@ -25,6 +26,9 @@ function* karplusStrong() {
 
   let i = 0;
   for (;;) {
+    if (currentTime > start + parameters.duration) {
+      return;
+    }
     // increment one step in the ring buffer and save values of i and i-1
     let im1 = i;
     i = (im1 + 1) % N;
@@ -42,20 +46,16 @@ function* karplusStrong() {
 karplusStrong.parameterDescriptors = [
   {
     name: 'frequency',
-    defaultValue: 440,
-    minValue: 20,
-    maxValue: 10000
+    defaultValue: 440
   },
   {
     name: 'damping',
-    defaultValue: 0.98,
-    minValue: 0,
-    maxValue: 1
+    defaultValue: 0.995
+  },
+  {
+    name: 'duration',
+    defaultValue: 3
   }
 ];
 
-const KarplusStrong = generatorAdapter(karplusStrong);
-
-register('KarplusStrong', KarplusStrong);
-
-export default KarplusStrong;
+registerProcessor('KarplusStrong', generatorAdapter(karplusStrong));

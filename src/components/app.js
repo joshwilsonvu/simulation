@@ -14,6 +14,7 @@ const If = ({cond, ...rest}) => (cond ? <React.Fragment {...rest}/> : <></>);
 export const App = () => {
   const [loaded, setLoaded] = useState(false);
   useEffect(() => window.addEventListener('load', e => setLoaded(true)), []);
+
   return (
     <>
       <Helmet>
@@ -30,6 +31,7 @@ export const App = () => {
           <div style={{width: '100%', maxWidth: '30rem'}}>
             <Piano/>
           </div>
+          <Audio/>
         </Root>
       </If>
     </>

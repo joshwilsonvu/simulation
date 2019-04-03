@@ -95,15 +95,15 @@ export default function generatorAdapter(generator, ...ctorArgs) {
         // Get the next value of the generator function.
         const {value, done} = this.iterator.next(args);
 
-        // Accept arrays as mono or multi-channel frames, and numbers as mono frames.
-        for (let channel = 0; channel < output.length; ++channel) {
-          output[channel][frame] = value.length ? value[channel] : value;
-        }
-
         // Signal that the generator is done synthesizing/processing.
         if (done) {
           this.done = done;
           return false; // generator is done, don't continue
+        }
+
+        // Accept arrays as mono or multi-channel frames, and numbers as mono frames.
+        for (let channel = 0; channel < output.length; ++channel) {
+          output[channel][frame] = value.length ? value[channel] : value;
         }
       }
       return true; // keep alive
