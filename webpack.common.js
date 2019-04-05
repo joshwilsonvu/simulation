@@ -12,7 +12,7 @@ module.exports = {
 
   },
   output: {
-    filename: '[name].js',
+    filename: '[name][hash].js',
     path: path.join(__dirname, './public/'),
   },
   module: {
@@ -26,13 +26,11 @@ module.exports = {
         test: /\.worklet\.js$/,
         exclude: /node_modules/,
         use: [{
-          loader: 'worklet-loader'
+          loader: 'worklet-loader',
+          options: {
+            name: '[name][hash].[ext]'
+          }
         }],
-      },
-      {
-        test: /\.(worker|worklet)\.js$/,
-        exclude: /node_modules/,
-        use: ['raw-loader']
       },
       {
         test: /\.css$/,
@@ -52,7 +50,7 @@ module.exports = {
     }
   },
   plugins: [
-    new webpack.ProgressPlugin(),
+    //new webpack.ProgressPlugin(),
     new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
       showErrors: true,

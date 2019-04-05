@@ -13,6 +13,7 @@ import generatorAdapter from './generator-adapter';
 function* karplusStrong() {
 // get initial arguments
   let {parameters} = yield;
+  console.log(JSON.stringify(parameters));
 
   const start = currentTime;
 
@@ -25,21 +26,25 @@ function* karplusStrong() {
   }
 
   let i = 0;
-  for (;;) {
-    if (currentTime > start + parameters.duration) {
-      return;
+  try {
+    for (; ;) {
+      if (currentTime > start + parameters.duration) {
+        return;
+      }
+      // increment one step in the ring buffer and save values of i and i-1
+      let im1 = i;
+      i = (im1 + 1) % N;
+
+      let xim1 = ringBuffer[im1];
+      let xi = ringBuffer[i];
+
+      ringBuffer[i] = parameters.damping * 0.5 * (xi + xim1);
+
+      // Update arguments
+      ({parameters} = yield ringBuffer[i]);
     }
-    // increment one step in the ring buffer and save values of i and i-1
-    let im1 = i;
-    i = (im1 + 1) % N;
-
-    let xim1 = ringBuffer[im1];
-    let xi = ringBuffer[i];
-
-    ringBuffer[i] = parameters.damping * 0.5 * (xi + xim1);
-
-    // Update arguments
-    ({parameters} = yield ringBuffer[i]);
+  } finally {
+    // cleanup code would go here
   }
 }
 
@@ -58,4 +63,4 @@ karplusStrong.parameterDescriptors = [
   }
 ];
 
-registerProcessor('KarplusStrong', generatorAdapter(karplusStrong));
+registerProcessor('karplus-strong', generatorAdapter(karplusStrong));

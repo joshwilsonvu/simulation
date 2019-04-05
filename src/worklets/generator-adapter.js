@@ -21,7 +21,9 @@
  * function* addNoise() {
  *   let {parameters, input, channelCount} = yield;
  *   for (;;) {
+ *     let noise = (Math.random() * 2 - 1) * parameters.gain;
  *
+ *     ({parameters, input, channelCount} = yield input + outputValue);
  *   }
  * }
  *
@@ -40,6 +42,12 @@ export default function generatorAdapter(generator, ...ctorArgs) {
       this.iterator = generator(...ctorArgs);
       this.first = true;
       this.done = false;
+      this.port.onmessage = e => {
+        if (e.data.toString().toLowerCase() === 'stop') {
+          this.done = true;
+          this.iterator.return && this.iterator.return();
+        }
+      }
     }
 
     static get parameterDescriptors() {
@@ -56,7 +64,7 @@ export default function generatorAdapter(generator, ...ctorArgs) {
       const output = outputs[0];
 
       // Because this is such a hot loop (3ms at 44.1kHz), allocate objects only once to avoid frequent GC.
-      const args = {parameters: {}, input: new Float32Array(), channelCount: output.length};
+      const args = {parameters: {}, input: [], channelCount: output.length};
 
       // Most parameters don't need sample-accurate updates, so they are arrays with length 1.
       // Keep track of the ones that do.
@@ -77,7 +85,11 @@ export default function generatorAdapter(generator, ...ctorArgs) {
           args.input[channel] = input[channel][0];
         }
 
-        this.iterator.next(args);
+        let {done} = this.iterator.next(args);
+        if (done) {
+          this.done = true;
+          return false;
+        }
         this.first = false;
       }
 
@@ -97,7 +109,7 @@ export default function generatorAdapter(generator, ...ctorArgs) {
 
         // Signal that the generator is done synthesizing/processing.
         if (done) {
-          this.done = done;
+          this.done = true;
           return false; // generator is done, don't continue
         }
 

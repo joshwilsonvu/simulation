@@ -1,60 +1,100 @@
-import React, {useState, useEffect, useMemo} from 'react';
-import CustomNode from '../nodes/custom-node';
-import {connect} from 'react-redux';
-/*
-class Audio {
-  constructor() {
-    this._context = new ()();
+import React, {useState, useEffect, useImperativeHandle, forwardRef} from 'react';
+import useAudio from '../hooks/use-audio';
+import AudioWorkletNodeGC from '../nodes/AudioWorkletNodeGC';
+import AudioParamView from './audio-param-view';
 
-    }
-  }
-
-
-}
-
-*/
-
-// from https://github.com/captbaritone/winamp2-js/blob/a5a76f554c369637431fe809d16f3f7e06a21969/js/media/index.js#L8-L27
-const resumeContextOnInteraction = context => {
-  if (context.state === "suspended") {
-    const resume = async () => {
-      await context.resume();
-
-      if (context.state === "running") {
-        document.body.removeEventListener("touchend", resume, false);
-        document.body.removeEventListener("click", resume, false);
-        document.body.removeEventListener("keydown", resume, false);
-      }
-    };
-
-    document.body.addEventListener("touchend", resume, false);
-    document.body.addEventListener("click", resume, false);
-    document.body.addEventListener("keydown", resume, false);
-  }
+const computeFrequency = (note, a4 = 440) => {
+  return Math.pow(2, (note - 69) / 12) * a4;
 };
 
-export default connect(
+const extractAudioNodeParams = node => {
+  const data = Array.from(node.parameters.entries())
+    .filter(([name]) => name !== 'frequency')
+    .map(([name, obj]) => [name, {
+      defaultValue: obj.defaultValue,
+      value: obj.defaultValue,
+      minValue: obj.minValue,
+      maxValue: obj.maxValue
+    }]);
+  return Object.fromEntries(data);
+};
 
-)(({module}) => {
-  const [context] = useState(new (window.AudioContext || window.webkitAudioContext)());
+const Audio = forwardRef(({module, name}, ref) => {
+  // audio context lasts the lifetime of the component
+  const contextRef = useAudio();
+  const [loaded, setLoaded] = useState(false);
+  const [noteNodes, setNoteNodes] = useState({});
+  const [params, setParams] = useState({});
 
+  // add a module as soon as it is given, and disallow notes during this time
   useEffect(() => {
-    return async () => (
-      await context.close() // close the context object when cleaned up
-    )
-  }, [context]);
+      const addModule = async () => {
+        setLoaded(false);
+        await contextRef.current.audioWorklet.addModule(module);
+        const dummyAWN = new AudioWorkletNode(contextRef.current, name);
+        setParams(extractAudioNodeParams(dummyAWN));
+        dummyAWN.disconnect(); // ensure release of resources
+        setLoaded(true);
+      };
+      addModule();
+    },
+    [contextRef, module, name]
+  );
 
-  useEffect(() => resumeContextOnInteraction(context));
-
-  useEffect(async () => {
-    await context.audioWorklet.addModule(module);
-    let node = new StringNode();
-    node.connect(context.destination);
-
-    return () => {
-      node.disconnect()
+  // allow methods to be called on this ref
+  useImperativeHandle(ref, () => ({
+    isLoaded: () => loaded,
+    playNote: note => {
+      if (loaded) {
+        let tmp = {};
+        Object.keys(params).map(name => tmp[name] = params[name].value);
+        let workletNode = new AudioWorkletNodeGC(contextRef.current, name, {
+          numberOfInputs: 0,
+          numberOfOutputs: 1,
+          outputChannelCount: [2],
+          parameterData: {
+            ...tmp,
+            frequency: computeFrequency(note),
+          }
+        });
+        let gainNode = new GainNode(contextRef.current, {
+          gain: 1
+        });
+        workletNode.connect(gainNode).connect(contextRef.current.destination);
+        // store the nodes corresponding to each note
+        setNoteNodes({
+          ...noteNodes,
+          [note]: [workletNode, gainNode]
+        });
+      }
+    },
+    stopNote: note => {
+      let noteNode = noteNodes[note];
+      if (noteNode) {
+        let [workletNode, gainNode] = noteNode;
+        gainNode.gain.setTargetAtTime(0, contextRef.current.currentTime, 0.02);
+        setNoteNodes({
+          ...noteNodes,
+          [note]: undefined // remove finished nodes from nodes object
+        });
+        setTimeout(() => {
+          // let workerNode and gainNode be GC'd
+          workletNode.disconnect();
+          gainNode.disconnect();
+        }, 50);
+      }
     }
-  }, [module]);
+  }));
 
-
+  // render the options with parameters
+  return (
+    <div>
+      {Object.entries(params).map(([name, map]) => (
+        <AudioParamView key={name} name={name} map={map}
+                        onChange={value => setParams({...params, [name]: {...params[name], value}})}/>
+      ))}
+    </div>
+  );
 });
+
+export default Audio;
