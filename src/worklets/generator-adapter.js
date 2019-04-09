@@ -18,44 +18,52 @@
  * which is not a big deal for most processors.
  *
  * Example:
- * function* addNoise() {
- *   let {parameters, input, channelCount} = yield;
+ * function* addNoise({parameters, input, channelCount}) {
  *   for (;;) {
  *     let noise = (Math.random() * 2 - 1) * parameters.gain;
- *
  *     ({parameters, input, channelCount} = yield input + outputValue);
  *   }
  * }
  *
- * @param {Function} generator a generator to be wrapped in a subclass of AudioWorkletProcessor.
- *                   Should provide a property parameterDescriptors that defines the relevant AudioParams.
+ * @param {Generator|Function|Class} implementation a regular function, a generator function, or a class
+ *                                   or object that defines tick() to be wrapped in a subclass of AudioWorkletProcessor.
+ *                                   Can provide a property parameterDescriptors that defines the relevant AudioParams.
  *
- * @param {Array<any>} ctorArgs arguments to be passed to the generator function or bound to the class constructor
+ * @param {boolean} processOnly if true, runs only when there is input. Defaults to false.
  *
- * @return {Class} a subclass of AudioWorkletProcessor that wraps the generator if given
+ * @param {Array<Object>?} parameterDescriptors an array of AudioWorklet parameter descriptors.
+ *                         Can be passed instead as a property of implementation. Defaults to [].
+ *
+ * @return {Class} a subclass of AudioWorkletProcessor that wraps the generator
  * @throws {RangeError} if processing is attempted on a finished generator, possible for processors but not sources
  */
-export default function generatorAdapter(generator, ...ctorArgs) {
+export default function makeAudioWorkletProcessor(implementation, processOnly = false, parameterDescriptors = []) {
   return class extends AudioWorkletProcessor {
-    constructor(options = {}) {
+    constructor(options) {
       super(options);
-      this.iterator = generator(...ctorArgs);
-      this.first = true;
-      this.done = false;
+      this.tick = this.first; // will be switched after first
+      this.isDone = false;
       this.port.onmessage = e => {
         if (e.data.toString().toLowerCase() === 'stop') {
-          this.done = true;
-          this.iterator.return && this.iterator.return();
+          this.stop();
         }
-      }
+      };
     }
 
     static get parameterDescriptors() {
-      return generator.parameterDescriptors || [];
+      return implementation.parameterDescriptors || parameterDescriptors;
     }
 
+    /**
+     * The main loop.
+     *
+     * @param inputs {Array<Array<Float32Array>>}
+     * @param outputs {Array<Array<Float32Array>>}
+     * @param parameters
+     * @return {boolean} whether to continue
+     */
     process(inputs, outputs, parameters) {
-      if (this.done) {
+      if (this.isDone) {
         throw new RangeError('Attempted to process after iterator has finished.');
       }
       // Adapts for a single-input (optional), single-output processor, which should suit most cases.
@@ -79,23 +87,9 @@ export default function generatorAdapter(generator, ...ctorArgs) {
         }
       }
 
-      if (this.first) {
-        // Update the input value, if any, with an array of samples in the single frame.
-        for (let channel = 0; channel < input.length; channel++) {
-          args.input[channel] = input[channel][0];
-        }
-
-        let {done} = this.iterator.next(args);
-        if (done) {
-          this.done = true;
-          return false;
-        }
-        this.first = false;
-      }
-
-      // Main loop, always 128 samples
+      // Main loop, always 128 frames
       for (let frame = 0; frame < output[0].length; ++frame) {
-        // Update the parameters that have changed.
+        // Update the parameters that have changed, if any.
         for (let key of changed) {
           args.parameters[key] = parameters[key][frame];
         }
@@ -104,21 +98,97 @@ export default function generatorAdapter(generator, ...ctorArgs) {
           args.input[channel] = input[channel][frame];
         }
 
-        // Get the next value of the generator function.
-        const {value, done} = this.iterator.next(args);
+        // Get the next value, initializing the implementation on its first call.
+        let value = this.tick(args);
+        if (value.hasOwnProperty('value')) {
+          // if generator-style return, destructure object
+          ({value, done: this.isDone} = value);
+        }
 
-        // Signal that the generator is done synthesizing/processing.
-        if (done) {
-          this.done = true;
-          return false; // generator is done, don't continue
+        // Signal that the processor is done synthesizing/processing.
+        if (this.isDone) {
+          this.port.postMessage('done');
+          return false; // done, don't continue
         }
 
         // Accept arrays as mono or multi-channel frames, and numbers as mono frames.
-        for (let channel = 0; channel < output.length; ++channel) {
-          output[channel][frame] = value.length ? value[channel] : value;
+        if (value.length === output.length) {
+          for (let channel = 0; channel < output.length; ++channel) {
+            output[channel][frame] = value[channel];
+          }
+        } else {
+          for (let channel = 0; channel < output.length; ++channel) {
+            output[channel][frame] = value;
+          }
         }
+
       }
-      return true; // keep alive
+      return !processOnly; // keep alive if generator
     }
-  };
+
+    /**
+     * On the first frame, determines whether the implementation is an object, class, function, or generator,
+     * and sets this.tick accordingly. All future frames will call this.tick.
+     *
+     * @param args
+     * @return {*}
+     * @private
+     */
+    first(args) {
+      // throws a new Error with this message if prerequisite not met
+      const err = e => {
+        throw new Error('Argument must be a regular function, a generator function, or a class or object that defines tick(). ' + (e || ''));
+      };
+      const source = implementation.toString().trim().slice(0, 11); // long enough for function*
+      let value, tick, cleanup;
+      try {
+        if (implementation.tick) {
+          // implementation is an object that has defined tick()
+          tick = implementation.tick.bind(implementation);
+          value = tick(args);
+        } else if (/^function ?\*/.test(source)) {
+          // implementation is a generator function
+          let iterator = implementation(args);
+          tick = iterator.next.bind(iterator);
+          cleanup = iterator.return.bind(iterator); // for releasing iterator to garbage collector
+          value = args.input || 0; // generators delay frames by one, fill in one frame with a zero
+        } else if (/^class/.test(source)) {
+          // implementation is a class that has defined tick()
+          let instance = new implementation(args);
+          if (instance.tick) {
+            tick = instance.tick.bind(instance);
+            value = tick(args);
+          } else {
+            err();
+          }
+        } else {
+          let ret = implementation(args);
+          if (ret.tick) {
+            // implementation is a class-like object that has defined tick()
+            tick = ret.tick.bind(ret);
+            value = tick(args);
+          } else {
+            // implementation is a plain function, ret is first result
+            tick = implementation;
+            value = ret;
+          }
+        }
+      } catch (e) {
+        err(e);
+      }
+      if (!tick) {
+        err();
+      }
+
+      // all subsequent calls to this.tick() will hit the implementation
+      this.tick = tick;
+      this.cleanup = cleanup;
+      return value;
+    }
+
+    stop() {
+      this.isDone = true;
+      this.cleanup && this.cleanup();
+    }
+  }
 }

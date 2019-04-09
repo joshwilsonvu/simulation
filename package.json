@@ -52,5 +52,51 @@
     "webpack-dev-server": "^3.2.1",
     "webpack-merge": "^4.2.1",
     "worklet-loader": "^1.0.0"
+  },
+  "browserslist": [
+    "last 1 version",
+    "> 2%",
+    "maintained node versions",
+    "not dead"
+  ],
+  "babel": {
+    "plugins": ["babel-plugin-styled-components"],
+    "presets": ["@babel/env", "@babel/react"]
+  },
+  "eslintConfig": {
+    "env": {
+      "browser": true,
+      "es6": true,
+      "node": true
+    },
+    "extends": [
+      "eslint:recommended",
+      "plugin:react/recommended"
+    ],
+    "globals": {
+      "Atomics": "readonly",
+      "SharedArrayBuffer": "readonly"
+    },
+    "parserOptions": {
+      "ecmaFeatures": {
+        "jsx": true
+      },
+      "ecmaVersion": 2018,
+      "sourceType": "module"
+    },
+    "plugins": [
+      "react",
+      "react-hooks"
+    ],
+    "rules": {
+      "react-hooks/rules-of-hooks": "error",
+      "react-hooks/exhaustive-deps": "warn",
+      "react/prop-types": [0]
+    },
+    "settings": {
+      "react": {
+        "version": "detect"
+      }
+    }
   }
 }

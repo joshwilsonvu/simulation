@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useCallback, useRef} from 'react';
+import React, {useState, useCallback, useRef} from 'react';
 import {Helmet} from 'react-helmet-async';
 
 import {Root} from './layouts';
@@ -8,6 +8,7 @@ import Audio from './audio';
 import useClientRect from '../hooks/use-client-rect';
 import KarplusStrong from '../worklets/karplus-strong.worklet';
 import useEventListener from '@use-it/event-listener';
+import {TimeAnalyzer, FreqAnalyzer} from './analyzers';
 
 
 const If = ({cond, ...rest}) => (cond ? <React.Fragment {...rest}/> : <></>);
@@ -36,12 +37,20 @@ export const App = () => {
       </Helmet>
       <If cond={loaded}>
         <Root>
-          <h4>Hello world!</h4>
-          <p>Use the keyboard below to play notes.</p>
-          <div style={{width: '100%', maxWidth: '30rem', minHeight: '10rem'}} ref={containerRef}>
+          <h3>CS 3274 Simulation</h3>
+          <p>Let&apos;s make some music.</p>
+          <p>This simulation uses the <a href="https://en.wikipedia.org/wiki/Karplus%E2%80%93Strong_string_synthesis">Karplus
+            Strong</a> algorithm to synthesize a plucked string.</p>
+          <p>Use the keyboard below to play notes, and try modifying the algorithm parameters. You can view the signals
+            using the time-domain and frequency-domain analyzers.</p>
+          <div style={{width: '100%', maxWidth: '480px', minHeight: '160px'}} ref={containerRef}>
             <Piano playNote={playNote} stopNote={stopNote} width={rect.width}/>
           </div>
-          <Audio module={KarplusStrong} name="karplus-strong" ref={audio} disabled={audio.current && !audio.current.isLoaded()}/>
+          <Audio module={KarplusStrong} name="karplus-strong" ref={audio}
+                 disabled={audio.current && !audio.current.isLoaded()}/>
+          <hr/>
+          <TimeAnalyzer width={480} height={160}/>
+          <FreqAnalyzer width={480} height={160}/>
         </Root>
       </If>
     </>

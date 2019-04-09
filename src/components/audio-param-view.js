@@ -1,21 +1,22 @@
 import React, {useState} from 'react';
 
-const AudioParamViewInput = ({onChange, defaultValue, maxValue, minValue}) => {
+const AudioParamViewInput = ({onChange, defaultValue, maxValue, minValue, slider = false}) => {
   const [value, setValue] = useState(null);
   return (
-    <input type="number" value={value !== null ? value : defaultValue} step="any" max={maxValue} min={minValue}
+    <input type={slider ? 'range' : 'number'} value={value !== null ? value : defaultValue} step="any" max={maxValue} min={minValue}
            onChange={e => {
-             setValue(e.target.value);
-             onChange(e.target.value);
+             const v = e.target.value;
+             setValue(v);
+             onChange(v);
            }}/>
   );
 };
 
-const AudioParamView = ({name, map, onChange}) => {
+const AudioParamView = ({name, map, onChange, ...rest}) => {
   return (
     <div>
       <h6>{name}</h6>
-      <AudioParamViewInput key={name} {...map} onChange={onChange}/>
+      <AudioParamViewInput {...map} {...rest} onChange={onChange}/>
     </div>
   );
 };

@@ -1,6 +1,6 @@
 'use strict';
 
-let webpack = require('webpack'),
+let //webpack = require('webpack'),
   path = require('path'),
   CleanWebpackPlugin = require('clean-webpack-plugin'),
   HtmlWebpackPlugin = require('html-webpack-plugin');
