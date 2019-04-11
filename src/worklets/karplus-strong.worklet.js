@@ -39,7 +39,7 @@ function* karplusStrong({parameters}) {
       ringBuffer[i] = parameters.damping * 0.5 * (xi + xim1);
 
       // Update arguments
-      ({parameters} = yield ringBuffer[i]);
+      yield ringBuffer[i];
     }
   } finally {
     // cleanup code would go here
