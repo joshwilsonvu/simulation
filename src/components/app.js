@@ -1,7 +1,7 @@
 import React, {useState, useCallback, useRef} from 'react';
 import {Helmet} from 'react-helmet-async';
 
-import {Root} from './layouts';
+import {Root, AudioDiv} from './layouts';
 
 import Piano from './piano';
 import Audio from './audio';
@@ -43,16 +43,16 @@ export const App = () => {
             Strong</a> algorithm to synthesize a plucked string.</p>
           <p>Use the keyboard below to play notes, and try modifying the algorithm parameters. You can view the signals
             using the signal and frequency viewers.</p>
-          <div style={{width: '100%', maxWidth: '480px', minHeight: '160px'}} ref={containerRef}>
+          <div style={{width: "100%"}} ref={containerRef}>
             <Piano playNote={playNote} stopNote={stopNote} width={rect.width}/>
           </div>
           <br/>
           <TimeAnalyzer width={rect.width} height={160}/>
           <FreqAnalyzer width={rect.width} height={160}/>
-          <div style={{width: '100%', maxWidth: '480px', minHeight: '160px'}}>
+          <AudioDiv>
             <Audio module={KarplusStrong} name="karplus-strong" ref={audio}
                    disabled={audio.current && !audio.current.isLoaded()}/>
-          </div>
+          </AudioDiv>
         </Root>
       </If>
     </>

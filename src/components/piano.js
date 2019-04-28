@@ -5,7 +5,7 @@ import {MdArrowBack, MdArrowForward} from 'react-icons/md';
 import useEventListener from '@use-it/event-listener';
 import 'react-piano/dist/styles.css';
 
-const c0 = MidiNumbers.fromNote('C0'), f1 = MidiNumbers.fromNote('F1');
+const c0 = MidiNumbers.fromNote('C0'), g1 = MidiNumbers.fromNote('G1');
 const minOffset = 1, maxOffset = 6;
 
 const PositionWrapper = styled.div`
@@ -40,6 +40,56 @@ const PositionIndicator = styled.div`
   opacity: 50%;
 `;
 
+const keys = [{
+  natural: 'a',
+  flat: 'q',
+  sharp: 'w'
+}, {
+  natural: 's',
+  flat: 'w',
+  sharp: 'e'
+}, {
+  natural: 'd',
+  flat: 'e',
+  sharp: 'r'
+}, {
+  natural: 'f',
+  flat: 'r',
+  sharp: 't'
+}, {
+  natural: 'g',
+  flat: 't',
+  sharp: 'y'
+}, {
+  natural: 'h',
+  flat: 'y',
+  sharp: 'u'
+}, {
+  natural: 'j',
+  flat: 'u',
+  sharp: 'i'
+}, {
+  natural: 'k',
+  flat: 'i',
+  sharp: 'o'
+}, {
+  natural: 'l',
+  flat: 'o',
+  sharp: 'p'
+}, {
+  natural: ';',
+  flat: 'p',
+  sharp: '['
+}, {
+  natural: "'",
+  flat: '[',
+  sharp: ']'
+}, {
+  natural: 'Enter',
+  flat: ']',
+  sharp: '\\'
+}];
+
 
 export default ({playNote, stopNote, width, ...rest}) => {
   const [octaveOffset, setOctaveOffset] = useState(3); // start at C3
@@ -53,19 +103,19 @@ export default ({playNote, stopNote, width, ...rest}) => {
   useEventListener('move-octave', ({detail}) => {
       setOctaveOffset(Math.min(Math.max(octaveOffset + detail, minOffset), maxOffset));
   }, window);
-  const first = c0 + octaveOffset * 12, last = f1 + octaveOffset * 12;
+  const first = c0 + octaveOffset * 12, last = g1 + octaveOffset * 12;
   const keyboardShortcuts = KeyboardShortcuts.create({
     firstNote: first,
     lastNote: last,
-    keyboardConfig: KeyboardShortcuts.HOME_ROW,
+    keyboardConfig: keys,
   });
   return <>
     <PositionWrapper width={width}>
-      <PositionArrowLeft onClick={e => window.dispatchEvent(new CustomEvent('move-octave', {detail: -1}))}>
+      <PositionArrowLeft onClick={() => window.dispatchEvent(new CustomEvent('move-octave', {detail: -1}))}>
         <MdArrowBack/>
       </PositionArrowLeft>
       <PositionIndicator octaveOffset={octaveOffset}/>
-      <PositionArrowRight onClick={e => window.dispatchEvent(new CustomEvent('move-octave', {detail: 1}))}>
+      <PositionArrowRight onClick={() => window.dispatchEvent(new CustomEvent('move-octave', {detail: 1}))}>
         <MdArrowForward/>
       </PositionArrowRight>
     </PositionWrapper>
