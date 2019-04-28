@@ -48,7 +48,7 @@ export const TimeAnalyzer = ({width, height}) => {
   return (
     <>
       <div>
-        <button onClick={() => setShown(!shown)}>{shown ? 'Hide' : 'Show'} Time Domain</button>
+        <button onClick={() => setShown(!shown)}>{shown ? 'Hide' : 'Show'} Signal</button>
       </div>
       {shown ? <canvas width={width} height={height} style={{border: '1px solid gray'}} ref={timeRef}/> : null}
     </>
@@ -77,6 +77,7 @@ export const FreqAnalyzer = ({width, height}) => {
       // draw frequency data
       ctxt.lineWidth = 1;
       ctxt.strokeStyle = '#555';
+      ctxt.fillStyle = '#555';
       ctxt.clearRect(0, 0, width, height);
       ctxt.beginPath();
       ctxt.moveTo(0, height);
@@ -88,7 +89,9 @@ export const FreqAnalyzer = ({width, height}) => {
         ctxt.lineTo(x, y);
       }
       ctxt.lineTo(width, height);
+      ctxt.closePath();
       ctxt.stroke();
+      ctxt.fill();
     }
   }, []);
 
@@ -101,9 +104,13 @@ export const FreqAnalyzer = ({width, height}) => {
   return (
     <>
       <div>
-        <button onClick={() => setShown(!shown)}>{shown ? 'Hide' : 'Show'} Frequency Domain</button>
+        <button onClick={() => setShown(!shown)}>{shown ? 'Hide' : 'Show'} Frequencies</button>
       </div>
-      {shown ? <canvas width={width} height={height} style={{border: '1px solid gray'}} ref={freqRef}/> : null}
+      {shown ? <canvas width={width} height={height} ref={freqRef} style={{
+        border: '1px solid gray',
+        width: width,
+        height: height
+      }}/> : null}
     </>
   );
 };

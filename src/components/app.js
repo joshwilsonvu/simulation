@@ -37,20 +37,22 @@ export const App = () => {
       </Helmet>
       <If cond={loaded}>
         <Root>
-          <h3>CS 3274 Simulation</h3>
+          <h3>Music Simulation</h3>
           <p>Let&apos;s make some music.</p>
           <p>This simulation uses the <a href="https://en.wikipedia.org/wiki/Karplus%E2%80%93Strong_string_synthesis">Karplus
             Strong</a> algorithm to synthesize a plucked string.</p>
           <p>Use the keyboard below to play notes, and try modifying the algorithm parameters. You can view the signals
-            using the time-domain and frequency-domain analyzers.</p>
+            using the signal and frequency viewers.</p>
           <div style={{width: '100%', maxWidth: '480px', minHeight: '160px'}} ref={containerRef}>
             <Piano playNote={playNote} stopNote={stopNote} width={rect.width}/>
           </div>
-          <Audio module={KarplusStrong} name="karplus-strong" ref={audio}
-                 disabled={audio.current && !audio.current.isLoaded()}/>
-          <hr/>
-          <TimeAnalyzer width={480} height={160}/>
-          <FreqAnalyzer width={480} height={160}/>
+          <br/>
+          <TimeAnalyzer width={rect.width} height={160}/>
+          <FreqAnalyzer width={rect.width} height={160}/>
+          <div style={{width: '100%', maxWidth: '480px', minHeight: '160px'}}>
+            <Audio module={KarplusStrong} name="karplus-strong" ref={audio}
+                   disabled={audio.current && !audio.current.isLoaded()}/>
+          </div>
         </Root>
       </If>
     </>

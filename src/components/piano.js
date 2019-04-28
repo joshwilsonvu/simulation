@@ -40,15 +40,19 @@ const PositionIndicator = styled.div`
   opacity: 50%;
 `;
 
+
 export default ({playNote, stopNote, width, ...rest}) => {
   const [octaveOffset, setOctaveOffset] = useState(3); // start at C3
   useEventListener('keydown', ({key}) => {
     if (key === 'ArrowLeft') {
-      setOctaveOffset(Math.max(octaveOffset - 1, minOffset));
+      window.dispatchEvent(new CustomEvent('move-octave', {detail: -1}));
     } else if (key === 'ArrowRight') {
-      setOctaveOffset(Math.min(octaveOffset + 1, maxOffset));
+      window.dispatchEvent(new CustomEvent('move-octave', {detail: 1}));
     }
   }, document.body);
+  useEventListener('move-octave', ({detail}) => {
+      setOctaveOffset(Math.min(Math.max(octaveOffset + detail, minOffset), maxOffset));
+  }, window);
   const first = c0 + octaveOffset * 12, last = f1 + octaveOffset * 12;
   const keyboardShortcuts = KeyboardShortcuts.create({
     firstNote: first,
@@ -57,11 +61,11 @@ export default ({playNote, stopNote, width, ...rest}) => {
   });
   return <>
     <PositionWrapper width={width}>
-      <PositionArrowLeft>
+      <PositionArrowLeft onClick={e => window.dispatchEvent(new CustomEvent('move-octave', {detail: -1}))}>
         <MdArrowBack/>
       </PositionArrowLeft>
       <PositionIndicator octaveOffset={octaveOffset}/>
-      <PositionArrowRight>
+      <PositionArrowRight onClick={e => window.dispatchEvent(new CustomEvent('move-octave', {detail: 1}))}>
         <MdArrowForward/>
       </PositionArrowRight>
     </PositionWrapper>

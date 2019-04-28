@@ -1,18 +1,8 @@
-/*
- * This file defines a custom audio processor. See https://webaudio.github.io/web-audio-api/#audioworklet.
- *
- * Globals: (from webaudio.github.io/web-audio-api/#audioworkletglobalscope)
- * void registerProcessor(name, processorCtor) - call this with your class, i.e. registerProcessor(Foo.name, Foo)
- * unsigned long long currentFrame - the number of the current frame (a frame is one time point across channels)
- * double currentTime - the amount of time elapsed in seconds since audio has begun
- * float sampleRate - the sample rate in Hz
- */
+import { fromGenerator } from 'simple-audio-worklet';
 
-import generatorAdapter from './generator-adapter';
-
-function* karplusStrong({parameters}) {
+function* karplusStrong({parameters, env}) {
   // Calculate buffer length and allocate N approx = (fs/F0) - 1/2
-  const N = Math.round(sampleRate / parameters.frequency - 0.5);
+  const N = Math.round(env.sampleRate / parameters.frequency - 0.5);
   const ringBuffer = new Float32Array(N);
 
   // Fill with random data for the strike
@@ -20,12 +10,15 @@ function* karplusStrong({parameters}) {
     ringBuffer[i] = 2 * Math.random() - 1;
   }
   // Filter the random data with cutoff of initialFilter
-  filter(ringBuffer, parameters.cutoff);
+  const initFilter = makeFilter(parameters.initFilter, env.sampleRate);
+  for (let i = 1; i < N; ++i) {
+    ringBuffer[i] = initFilter(ringBuffer[i], ringBuffer[i-1]);
+  }
 
   // Remove any DC offset if requested
-  if (parameters.removeDC) {
-    removeDC(ringBuffer);
-  }
+  removeDC(ringBuffer, parameters.removeDC);
+
+  const decayFilter = makeFilter(parameters.decayFilter, env.sampleRate);
 
   try {
     for (let i = 0; ;) {
@@ -36,7 +29,7 @@ function* karplusStrong({parameters}) {
       let xim1 = ringBuffer[im1];
       let xi = ringBuffer[i];
 
-      ringBuffer[i] = parameters.damping * 0.5 * (xi + xim1);
+      ringBuffer[i] = parameters.damping * decayFilter(xi, xim1);
 
       // Update arguments
       yield ringBuffer[i];
@@ -46,7 +39,7 @@ function* karplusStrong({parameters}) {
   }
 }
 
-karplusStrong.parameterDescriptors = [
+const parameterDescriptors = [
   {
     name: 'frequency',
     defaultValue: 440,
@@ -55,12 +48,18 @@ karplusStrong.parameterDescriptors = [
   {
     name: 'damping',
     defaultValue: 0.995,
-    minValue: 0,
-    maxValue: 1.005
+    minValue: 0.9,
+    maxValue: 1
   },
   {
-    name: 'cutoff',
+    name: 'initFilter',
     defaultValue: sampleRate / 2,
+    minValue: 1,
+    maxValue: sampleRate / 2
+  },
+  {
+    name: 'decayFilter',
+    defaultValue: sampleRate / (2 * Math.PI),
     minValue: 1,
     maxValue: sampleRate / 2
   },
@@ -72,19 +71,19 @@ karplusStrong.parameterDescriptors = [
   }
 ];
 
-function filter(array, cutoff) {
-  const dt = 1 / sampleRate;
-  const alpha = (2 * Math.PI * dt * cutoff) / (2 * Math.PI * dt * cutoff + 1);
-  for (let i = 1; i < array.length; ++i) {
-    array[i] = array[i - 1] + alpha * (array[i] - array[i - 1]);
-  }
+function makeFilter(cutoff, sampleRate) {
+  const z = 2 * Math.PI / sampleRate * cutoff;
+  const alpha = z / (z + 1);
+  return (xi, xim1) => xim1 + alpha * (xi - xim1);
 }
 
-function removeDC(array) {
-  let s = sum(array);
-  const avg = s / array.length;
-  for (let i = 0; i < array.length; ++i) {
-    array[i] -= avg;
+function removeDC(array, amount) {
+  if (amount) {
+    let s = sum(array);
+    const avg = s / array.length * amount;
+    for (let i = 0; i < array.length; ++i) {
+      array[i] -= avg;
+    }
   }
 }
 
@@ -100,4 +99,4 @@ function sum(array) {
   return s;
 }
 
-registerProcessor('karplus-strong', generatorAdapter(karplusStrong), false);
+fromGenerator(karplusStrong, { registerAs: 'karplus-strong', parameterDescriptors });
