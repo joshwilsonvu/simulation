@@ -23,11 +23,6 @@ let resumeId = setInterval(() => {
  * Grants a component access to a shared AudioContext.
  */
 export default () => {
-  useEffect(() => {
-    if (context.state === "suspended") {
-      context.resume();
-    }
-  }, [context, context.state]);
   useEffect(() => async () => {
     await context.close();
   }, [context]);
