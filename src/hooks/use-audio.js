@@ -1,4 +1,4 @@
-import {useEffect, useContext, createContext} from 'react';
+import {useEffect} from 'react';
 
 const context = new (window.AudioContext || window.webkitAudioContext)(),
   master = new GainNode(context),
@@ -11,17 +11,23 @@ const context = new (window.AudioContext || window.webkitAudioContext)(),
 master.connect(context.destination);
 master.connect(analyzer);
 
-const globals = createContext({
-  context,
-  master,
-  analyzer
-});
+let resumeId = setInterval(() => {
+  if (context.state === "suspended") {
+    context.resume().catch(() => {});
+  } else {
+    clearInterval(resumeId);
+  }
+}, 500);
 
 /**
  * Grants a component access to a shared AudioContext.
  */
 export default () => {
-  const {context, master, analyzer} = useContext(globals);
+  useEffect(() => {
+    if (context.state === "suspended") {
+      context.resume();
+    }
+  }, [context, context.state]);
   useEffect(() => async () => {
     await context.close();
   }, [context]);
